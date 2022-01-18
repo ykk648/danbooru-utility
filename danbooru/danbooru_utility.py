@@ -162,15 +162,15 @@ def get_args(arg_input):
 
 
 def tag_check(
-    tags,
-    rating,
-    score,
-    score_range=[-1e15,1e15],
-    included_ratings=set(),
-    banned_tags=set(),
-    required_tags=set(),
-    atleast_tags=set(),
-    atleast_num=0,
+        tags,
+        rating,
+        score,
+        score_range=[-1e15, 1e15],
+        included_ratings=set(),
+        banned_tags=set(),
+        required_tags=set(),
+        atleast_tags=set(),
+        atleast_num=0,
 ):
     """
     checks if tags and rating match requirements
@@ -208,20 +208,20 @@ def load_data(args):
     for path in metadata_paths:
         with open(path, "r") as f:
             for line in f:
-                #if i >= args.max_examples:
-                    #break
+                # if i >= args.max_examples:
+                # break
                 example = json.loads(line)
                 if tag_check(
-                    {y['name']
-                     for y in example['tags']},
-                    example['rating'],
-                    example['score'],
-                    score_range=args.score_range,
-                    included_ratings=args.ratings,
-                    required_tags=args.required_tags,
-                    banned_tags=args.banned_tags,
-                    atleast_tags=args.atleast_tags,
-                    atleast_num=args.atleast_num,
+                        {y['name']
+                         for y in example['tags']},
+                        example['rating'],
+                        example['score'],
+                        score_range=args.score_range,
+                        included_ratings=args.ratings,
+                        required_tags=args.required_tags,
+                        banned_tags=args.banned_tags,
+                        atleast_tags=args.atleast_tags,
+                        atleast_num=args.atleast_num,
                 ):
                     i += 1
                     yield example
@@ -256,10 +256,10 @@ def resize_and_save_images_mp(data_gen, args):
 
     """
     start_time = time.time()
-    i = 0 # number of files
-    num_processed = 0 # number of faces processed
-    manager = mp.Manager() # Manager to allow shared variables
-    task_queue = manager.Queue(maxsize=NCORE) # queue of images for face detection processes
+    i = 0  # number of files
+    num_processed = 0  # number of faces processed
+    manager = mp.Manager()  # Manager to allow shared variables
+    task_queue = manager.Queue(maxsize=NCORE)  # queue of images for face detection processes
     num_processed_return = manager.list()
     iolock = mp.Lock()
     pool = mp.Pool(
@@ -276,7 +276,7 @@ def resize_and_save_images_mp(data_gen, args):
             # in danbooru201* the files are split into different directories based on mod of image id 
             load_path = os.path.join(
                 args.directory,
-                'original',
+                # 'original',
                 "{0:0{width}}".format(int(img_id) % 1000, width=4),
                 "{0}.{1}".format(img_id, example['file_ext']),
             )
@@ -304,7 +304,7 @@ def resize_and_save_images_mp(data_gen, args):
                     i += 1
                     if i % 100 == 0:
                         print(
-                                f'Processed {i} files. It took {time.time() - start_time:.2f} sec'
+                            f'Processed {i} files. It took {time.time() - start_time:.2f} sec'
                         )
                     if i >= args.max_examples:
                         break
@@ -327,11 +327,11 @@ def resize_and_save_images_mp(data_gen, args):
             i += 1
             if i % 100 == 0:
                 print(
-                        f'Processed {i} files. It took {time.time() - start_time:.2f} sec'
+                    f'Processed {i} files. It took {time.time() - start_time:.2f} sec'
                 )
         except (FileNotFoundError, OSError) as detail:
             print(f"Unable to load image {detail}")
-    
+
     # Send end task sentinel
     for _ in range(NCORE):
         task_queue.put(None)
@@ -339,7 +339,7 @@ def resize_and_save_images_mp(data_gen, args):
     pool.join()
     num_processed += sum(num_processed_return)
     print(
-            f'\nProcessed {i} files. Added {num_processed} images. It took {time.time() - start_time:.2f} sec'
+        f'\nProcessed {i} files. Added {num_processed} images. It took {time.time() - start_time:.2f} sec'
     )
 
 
@@ -355,8 +355,9 @@ def resize_and_save_image(load_path, write_file, save_dir, link_dir, img_size, o
             return 1
 
     img = Image.open(load_path)
+    img = img.convert("RGB")
     img = resizeimage.resize_contain(img, [img_size, img_size])
-    img.save(write_path, img.format)
+    img.save(write_path.replace('jpg', 'png'), img.format)
     img.close()
     return 1
 
@@ -375,14 +376,14 @@ def exists_or_link(write_path, link_path):
 
 
 def detect_faces(
-    load_path,
-    write_file,
-    save_dir,
-    link_dir,
-    img_size,
-    face_scale,
-    overwrite,
-    cascade_file_name="lbpcascade_animeface.xml"
+        load_path,
+        write_file,
+        save_dir,
+        link_dir,
+        img_size,
+        face_scale,
+        overwrite,
+        cascade_file_name="lbpcascade_animeface.xml"
 ):
     """
     Detect faces in image, and crops to fit them in upper part of image
@@ -442,6 +443,7 @@ def detect_faces(
 
         try:
             img = resizeimage.resize_contain(img, [img_size, img_size])
+            img = img.convert("RGB")
             img.save(face_write_path, img.format)
             num_processed += 1
         except Exception as detail:
